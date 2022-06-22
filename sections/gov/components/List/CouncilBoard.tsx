@@ -13,15 +13,18 @@ import { truncateAddress } from 'utils/formatters/string';
 
 import SpartanCouncilNFT from 'assets/gifs/SC-NFT.gif';
 import Link from 'assets/svg/app/link.svg';
-import useCouncilMembers from '../../hooks/useCouncilMembers';
 import { Blockie, StyledTooltip } from '../common';
 import { Card } from 'sections/gov/components/common';
+import useSynthetixQueries from '@synthetixio/queries';
+import Connector from '../../../../containers/Connector';
 
 const CouncilBoard: React.FC = () => {
 	const { t } = useTranslation();
+	const { L2DefaultProvider } = Connector.useContainer();
 	const { blockExplorerInstance } = Etherscan.useContainer();
 	const theme = useTheme();
-	const councilMembersQuery = useCouncilMembers();
+	const { useGetSpartanCouncil } = useSynthetixQueries();
+	const councilMembersQuery = useGetSpartanCouncil(L2DefaultProvider);
 	const councilMembers = councilMembersQuery.data;
 
 	return (
@@ -32,12 +35,8 @@ const CouncilBoard: React.FC = () => {
 			{councilMembers ? (
 				councilMembers.length > 0 ? (
 					councilMembers.map((member, i) => {
-						const displayName = member.ens
-							? member.ens
-							: member.name
-							? member.name
-							: member.address;
-						const isAddress = member.ens || member.name ? false : true;
+						const displayName = member.ens ? member.ens : member.address;
+						const isAddress = Boolean(member.ens);
 						return (
 							<MemberRow key={i}>
 								<FlexDivRowCentered>
@@ -46,7 +45,7 @@ const CouncilBoard: React.FC = () => {
 										key={i}
 										arrow={true}
 										placement="bottom"
-										content={member.ens ? member.ens : member.name ? member.name : member.address}
+										content={member.ens ? member.ens : member.address}
 										hideOnClick={false}
 									>
 										<Address>{isAddress ? truncateAddress(displayName) : displayName}</Address>
